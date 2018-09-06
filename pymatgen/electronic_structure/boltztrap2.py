@@ -217,6 +217,7 @@ class ParabolicBandsData:
         NK = 25
         
         self.mommat = None
+        self.magmom = None
         # Create a hypotetical monoatomic simple cubic structure with a lattice
         # parameter of 5 A.
         atoms = Atoms("Si", cell=5 * np.eye(3), pbc=True)
