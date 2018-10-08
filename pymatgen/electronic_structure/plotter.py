@@ -2883,11 +2883,7 @@ class BoltztrapPlotter(object):
             sbk = self._bz.get_seebeck(output='eigs')
 
         plt.figure(figsize=(22, 14))
-<<<<<<< HEAD
-        tlist = np.sort(list(sbk['n'].keys()))
-=======
         tlist = sorted(sbk['n'].keys())
->>>>>>> upstream/master
         doping = self._bz.doping['n'] if doping == 'all' else doping
         for i, dt in enumerate(['n', 'p']):
             plt.subplot(121 + i)
@@ -2944,11 +2940,7 @@ class BoltztrapPlotter(object):
                                              output='eigs')
 
         plt.figure(figsize=(22, 14))
-<<<<<<< HEAD
-        tlist = np.sort(list(cond['n'].keys()))
-=======
         tlist = sorted(cond['n'].keys())
->>>>>>> upstream/master
         doping = self._bz.doping['n'] if doping == 'all' else doping
         for i, dt in enumerate(['n', 'p']):
             plt.subplot(121 + i)
