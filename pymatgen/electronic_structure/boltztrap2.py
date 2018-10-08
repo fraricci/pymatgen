@@ -438,7 +438,7 @@ class BztInterpolator(object):
         def get_energy(kpt,bnd,cbm,equivalences,lattvec,coeffs):
             sign = -1 if cbm == False else 1
             return sign*fite.getBands(kpt[np.newaxis,:], 
-                                      equivalences, lattvec, coeffs)[0][bnd]
+                                      equivalences, lattvec, coeffs[bnd,np.newaxis])[0]
         
         if method == 'all':
             
@@ -449,22 +449,24 @@ class BztInterpolator(object):
                     if j not in R:
                         R.append(j)
             R=R[1:]
-            out = []
+            out = {}
             #print('okk')
             
-            bands = list(range(self.data.vbm_idx - nvb +1,self.data.cbm_idx + ncb -1))
+            bands = list(range(self.data.vbm_idx - nvb +1,self.data.cbm_idx + ncb))
+            print(bands)
             
             for bnd in bands:
-                out.append([])
                 bnd -= self.nemin
                 vbm_idx = self.data.vbm_idx - self.nemin
                 cbm = True if bnd > vbm_idx else False
+                out['cbm' if cbm else 'vbm'] = {}
+                out['cbm' if cbm else 'vbm'][bnd] = []
 
                 cnt=0
                 for i in np.linspace(0,1,7):
                     for j in np.linspace(0,1,7):
                         for k in np.linspace(0,1,7):
-                            sys.stdout.flush()
+                            #sys.stdout.flush()
                             xkpt = np.array([i,j,k]) + (np.random.rand(3)*0.05-0.025)
                             suc=False
                             nit=0
@@ -476,7 +478,7 @@ class BztInterpolator(object):
                                 suc=res.success
                                 xkpt=res.x
                                 ene = res.fun
-                                nit+=res.nit
+                                nit += res.nit
 
                             found = True
                             
@@ -488,12 +490,13 @@ class BztInterpolator(object):
                             
                             cnt+=1
                             if found:
-                                out[-1].append( ' '.join(["step "+str(cnt), str(nit), str(np.array([i,j,k])), str(res.x), 
-                                str(res.fun) if cbm else str(-res.fun)]))
-                                #sys.stdout.flush()
-                            break
-                        break
-                    break
+                                ene = res.fun if cbm else -res.fun
+                                ene = Energy(ene - self.efermi,'Ha').to('eV')
+                                out['cbm' if cbm else 'vbm'][bnd].append([cnt,nit, xkpt,res.x,ene])
+                                print(cnt)
+                            #break
+                        #break
+                    #break
         
         elif method == 'one':
             out = []
@@ -505,16 +508,21 @@ class BztInterpolator(object):
                 suc=False
                 nit=0
                 cnt = 0
+                xkpt = kpoint_start.copy()
+                print(xkpt[:,np.newaxis].shape)
                 while suc == False:
-                    res=minimize(get_energy,kpoint_start[np.newaxis,:],
+                    res=minimize(get_energy,xkpt,
                                                 args=(bnd,cbm,self.equivalences,
                                                     self.data.lattvec, self.coeffs),
                                                 method='BFGS',tol=1e-06)
-                    suc=res.success
-                    xkpt=res.x
+                    suc = res.success
+                    xkpt = res.x
                     ene = res.fun
-                    nit+=res.nit
+                    nit += res.nit
+                    print(nit,suc,xkpt)
+                    
                 found = True
+                
                 if found:
                     ene = res.fun if cbm else -res.fun
                     ene = Energy(ene - self.efermi,'Ha').to('eV')
@@ -524,7 +532,7 @@ class BztInterpolator(object):
 
     def save(self):
         pass
-    
+
 class BztTransportProperties(object):
     """
         Compute Seebeck, Conductivity, Electrical part of thermal conductivity 
