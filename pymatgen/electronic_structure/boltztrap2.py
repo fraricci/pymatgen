@@ -87,9 +87,10 @@ class BandstructureLoader:
 
         self.nelect = nelect
         self.UCvol = self.structure.volume * units.Angstrom ** 3
-
-        self.vbm_idx = list(bs_obj.get_vbm()['band_index'].values())[0][-1]
-        self.cbm_idx = list(bs_obj.get_cbm()['band_index'].values())[0][0]
+        
+        if not bs_obj.is_metal():
+            self.vbm_idx = list(bs_obj.get_vbm()['band_index'].values())[0][-1]
+            self.cbm_idx = list(bs_obj.get_cbm()['band_index'].values())[0][0]
 
     def get_lattvec(self):
         try:
